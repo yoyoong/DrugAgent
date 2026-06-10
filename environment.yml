@@ -1,0 +1,13 @@
+name: DrugAgent
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - fastapi>=0.115
+  - uvicorn>=0.30
+  - httpx>=0.27
+  - pip
+  - pip:
+      - mcp>=1.0.0
+variables:
+  PYTHONNOUSERSITE: "1"
