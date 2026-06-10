@@ -8,8 +8,16 @@ from tools.search_molecule_tool import search_molecule_by_smiles
 
 
 MODEL_API_BASE_URL = os.getenv("MODEL_API_BASE_URL", "http://127.0.0.1:8000")
+MCP_HOST = os.getenv("MCP_HOST", "127.0.0.1")
+MCP_PORT = int(os.getenv("MCP_PORT", "8001"))
+MCP_PATH = os.getenv("MCP_PATH", "/mcp")
 
-mcp = FastMCP("DrugAgent")
+mcp = FastMCP(
+    "DrugAgent",
+    host=MCP_HOST,
+    port=MCP_PORT,
+    streamable_http_path=MCP_PATH,
+)
 
 
 @mcp.tool()
@@ -32,4 +40,4 @@ async def predict_molecule_property(smiles: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    mcp.run(transport="streamable-http")

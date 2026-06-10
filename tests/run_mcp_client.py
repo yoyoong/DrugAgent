@@ -44,7 +44,7 @@ async def main() -> None:
             "PYTHONNOUSERSITE": "1",
             "MODEL_API_BASE_URL": os.getenv(
                 "MODEL_API_BASE_URL",
-                "http://127.0.0.1:8000",
+                "http://172.25.18.26:8000",
             ),
         },
         cwd=str(PROJECT_ROOT),
@@ -59,11 +59,11 @@ async def main() -> None:
             for tool in tools.tools:
                 print(f"- {tool.name}: {tool.description}")
 
-            prediction = await session.call_tool(
-                "predict_molecule_property",
-                {"smiles": args.smiles},
-            )
-            print_result("predict_molecule_property", prediction)
+            # prediction = await session.call_tool(
+            #     "predict_molecule_property",
+            #     {"smiles": args.smiles},
+            # )
+            # print_result("predict_molecule_property", prediction)
 
             if not args.skip_pubchem:
                 molecule = await session.call_tool(
