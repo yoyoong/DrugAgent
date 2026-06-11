@@ -36,13 +36,10 @@ def print_result(title: str, result: Any) -> None:
 
 
 async def main() -> None:
-    parser = argparse.ArgumentParser(description="Run the real DrugAgent MCP server check.")
-    parser.add_argument("--smiles", default="CCO", help="SMILES string to check.")
-    parser.add_argument(
-        "--skip-pubchem",
-        action="store_true",
-        help="Skip search_molecule because it requires PubChem network access.",
+    parser = argparse.ArgumentParser(
+        description="Run the real DrugAgent retrosynthesis MCP tool check."
     )
+    parser.add_argument("--smiles", default="Cc1cc(C)n2nc(C=O)nc2n1", help="Target molecule SMILES string.")
     args = parser.parse_args()
 
     server = StdioServerParameters(
@@ -53,6 +50,7 @@ async def main() -> None:
             "PYTHONNOUSERSITE": "1",
             "MODEL_API_HOST": required_env("MODEL_API_HOST"),
             "MODEL_API_PORT": required_env("MODEL_API_PORT"),
+            "MODEL_API_HOST_DCTBM": required_env("MODEL_API_PORT_DCTBM"),
             "MCP_HOST": required_env("MCP_HOST"),
             "MCP_PORT": required_env("MCP_PORT"),
             "MCP_PATH": required_env("MCP_PATH"),
@@ -65,25 +63,13 @@ async def main() -> None:
         async with ClientSession(read, write) as session:
             await session.initialize()
 
-            tools = await session.list_tools()
-            print("Available MCP tools:")
-            for tool in tools.tools:
-                print(f"- {tool.name}: {tool.description}")
-
             prediction = await session.call_tool(
-                "predict_molecule_property",
+                "predict_retrosynthesis",
                 {"smiles": args.smiles},
             )
-            print_result("predict_molecule_property", prediction)
+            print_result("predict_retrosynthesis", prediction)
 
-            if not args.skip_pubchem:
-                molecule = await session.call_tool(
-                    "search_molecule",
-                    {"smiles": args.smiles},
-                )
-                print_result("search_molecule", molecule)
-
-    print("\nMCP client check passed.")
+    print("\nRetrosynthesis MCP check passed.")
 
 
 if __name__ == "__main__":
