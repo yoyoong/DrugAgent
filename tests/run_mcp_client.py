@@ -41,7 +41,7 @@ async def main() -> None:
     parser.add_argument(
         "--skip-pubchem",
         action="store_true",
-        help="Skip search_molecule because it requires PubChem network access.",
+        help="Skip search_compound because it requires PubChem network access.",
     )
     args = parser.parse_args()
 
@@ -77,11 +77,11 @@ async def main() -> None:
             print_result("predict_molecule_property", prediction)
 
             if not args.skip_pubchem:
-                molecule = await session.call_tool(
-                    "search_molecule",
-                    {"smiles": args.smiles},
+                compound = await session.call_tool(
+                    "search_compound",
+                    {"query": args.smiles, "search_type": "smiles", "max_records": 1},
                 )
-                print_result("search_molecule", molecule)
+                print_result("search_compound", compound)
 
     print("\nMCP client check passed.")
 

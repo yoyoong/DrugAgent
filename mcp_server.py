@@ -6,7 +6,7 @@ import httpx
 from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from tools.search_molecule_tool import search_molecule_by_smiles
+from tools.search_compound_tool import search_compound as search_compound_from_pubchem
 
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -37,9 +37,13 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-async def search_molecule(smiles: str) -> dict[str, Any]:
-    """Search PubChem by SMILES and return molecule metadata plus SDF."""
-    return await search_molecule_by_smiles(smiles)
+async def search_compound(
+    query: str,
+    search_type: str | None = None,
+    max_records: int = 10,
+) -> dict[str, Any]:
+    """Search PubChem compounds by name, CID, SMILES, InChI, or formula."""
+    return await search_compound_from_pubchem(query, search_type, max_records)
 
 
 @mcp.tool()

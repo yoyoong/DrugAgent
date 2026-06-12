@@ -5,7 +5,7 @@ A minimal demo for building a drug-development agent with:
 - Skills for Codex / Claude Code instructions
 - FastAPI for wrapping model capabilities
 - MCP tools for agent-callable functions
-- A simple PubChem molecule search tool
+- A PubChem compound search tool
 - A remote FastAPI retrosynthesis prediction tool
 
 ## Project Layout
@@ -82,7 +82,7 @@ python mcp_server.py
 
 The MCP server registers:
 
-- `search_molecule`: search PubChem by SMILES and return molecule metadata plus SDF.
+- `search_compound`: search PubChem by compound name, CID, SMILES, InChI, or formula and return full PubChem compound records.
 - `predict_retrosynthesis`: call the remote FastAPI retrosynthesis model wrapper.
 
 ## Run Real Test Scripts
