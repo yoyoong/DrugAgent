@@ -27,6 +27,7 @@ MCP_TRANSPORT = required_env("MCP_TRANSPORT")
 
 MODEL_API_HOST = required_env("MODEL_API_HOST")
 MODEL_API_PORT_DCTBM = int(required_env("MODEL_API_PORT_DCTBM")) # DCTBM
+MODEL_API_PORT_MMCLKIN = int(required_env("MODEL_API_PORT_MMCLKIN"))
 
 mcp = FastMCP(
     "DrugAgent",
@@ -56,6 +57,62 @@ async def predict_retrosynthesis(smiles: str) -> dict[str, Any]:
     url = f"http://{MODEL_API_HOST}:{MODEL_API_PORT_DCTBM}/models/retrosynthesis_prediction"
     async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.post(url, json={"smiles": smiles.strip()})
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def predict_kinase_inhibitor_affinity(
+    kinase_id: str,
+    ligand_id: str,
+    dataset: str = "3DKDavis",
+    structure_source: str = "mmclkin_database",
+) -> dict[str, Any]:
+    """Call MMCLKin affinity prediction for one kinase and one inhibitor."""
+
+    if not kinase_id or not kinase_id.strip():
+        raise ValueError("kinase_id is required")
+    if not ligand_id or not ligand_id.strip():
+        raise ValueError("ligand_id is required")
+
+    url = f"http://{MODEL_API_HOST}:{MODEL_API_PORT_MMCLKIN}/api/mmclkin/affinity"
+    payload = {
+        "kinase_id": kinase_id.strip(),
+        "ligand_id": ligand_id.strip(),
+        "dataset": dataset,
+        "structure_source": structure_source,
+    }
+    async with httpx.AsyncClient(timeout=900.0, trust_env=False) as client:
+        response = await client.post(url, json=payload)
+        response.raise_for_status()
+        return response.json()
+
+
+@mcp.tool()
+async def predict_kinase_inhibitor_selectivity(
+    ligand_id: str,
+    kinase_panel: list[str],
+    dataset: str = "3DKDavis",
+    structure_source: str = "mmclkin_database",
+) -> dict[str, Any]:
+    """Call MMCLKin selectivity prediction for one inhibitor across a kinase panel."""
+
+    if not ligand_id or not ligand_id.strip():
+        raise ValueError("ligand_id is required")
+
+    normalized_panel = [kinase.strip() for kinase in kinase_panel if kinase and kinase.strip()]
+    if not normalized_panel:
+        raise ValueError("kinase_panel must contain at least one kinase")
+
+    url = f"http://{MODEL_API_HOST}:{MODEL_API_PORT_MMCLKIN}/api/mmclkin/selectivity"
+    payload = {
+        "ligand_id": ligand_id.strip(),
+        "kinase_panel": normalized_panel,
+        "dataset": dataset,
+        "structure_source": structure_source,
+    }
+    async with httpx.AsyncClient(timeout=900.0, trust_env=False) as client:
+        response = await client.post(url, json=payload)
         response.raise_for_status()
         return response.json()
 

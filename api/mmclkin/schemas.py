@@ -1,4 +1,6 @@
-from typing import Literal
+from __future__ import annotations
+
+from typing import List, Literal
 
 from pydantic import BaseModel, Field
 
@@ -24,12 +26,12 @@ class AffinityResponse(BaseModel):
     dataset: str
     structure_source: str
     status: Literal["success"] = "success"
-    warnings: list[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
 
 
 class SelectivityRequest(BaseModel):
     ligand_id: str = Field(..., min_length=1)
-    kinase_panel: list[str] = Field(..., min_length=1)
+    kinase_panel: List[str] = Field(..., min_length=1)
     dataset: DatasetName = "3DKDavis"
     structure_source: StructureSource = "mmclkin_database"
 
@@ -47,16 +49,16 @@ class SelectivityMetrics(BaseModel):
 class SelectivityResponse(BaseModel):
     task: Literal["selectivity_prediction"] = "selectivity_prediction"
     ligand_id: str
-    affinity_profile: list[AffinityProfileItem]
+    affinity_profile: List[AffinityProfileItem]
     selectivity_metrics: SelectivityMetrics
     model: str = "MMCLKin"
     dataset: str
     structure_source: str
     status: Literal["success"] = "success"
-    warnings: list[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
 
 
 class ErrorResponse(BaseModel):
     status: Literal["error"] = "error"
     message: str
-    warnings: list[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)

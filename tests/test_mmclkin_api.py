@@ -17,7 +17,7 @@ def main() -> None:
     parser.add_argument("--panel", nargs="+", default=["ABL1", "EGFR", "KIT"])
     args = parser.parse_args()
 
-    with httpx.Client(base_url=args.base_url, timeout=600.0) as client:
+    with httpx.Client(base_url=args.base_url, timeout=600.0, trust_env=False) as client:
         health = client.get("/health")
         health.raise_for_status()
         print_json("health", health.json())

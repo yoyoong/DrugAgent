@@ -4,7 +4,7 @@ Use this skill when the user wants MMCLKin-based kinase-inhibitor affinity predi
 
 ## Scope
 
-This skill coordinates inputs and calls the MMCLKin FastAPI service. It does not run the deep learning model directly.
+This skill coordinates inputs and calls the MMCLKin MCP tools. It does not run the deep learning model directly.
 
 The first version prioritizes compounds and kinases already present in the local MMCLKin 3DKDavis database.
 
@@ -42,15 +42,15 @@ For the base workflow, prefer MMCLKin database IDs:
 5. Do not fetch new kinase structures from RCSB PDB or AlphaFold DB in the first version.
 6. Do not run P2Rank pocket prediction in the first version.
 
-## FastAPI Calls
+## MCP Tool Calls
 
 Affinity prediction:
 
-```http
-POST /api/mmclkin/affinity
+```text
+predict_kinase_inhibitor_affinity
 ```
 
-Payload:
+Arguments:
 
 ```json
 {
@@ -63,11 +63,11 @@ Payload:
 
 Selectivity prediction:
 
-```http
-POST /api/mmclkin/selectivity
+```text
+predict_kinase_inhibitor_selectivity
 ```
 
-Payload:
+Arguments:
 
 ```json
 {
@@ -98,7 +98,7 @@ For selectivity prediction, return:
 
 ## Constraints
 
-- Do not claim a prediction was completed unless the MMCLKin API returned a successful result.
+- Do not claim a prediction was completed unless the MMCLKin MCP tool returned a successful result from the MMCLKin API.
 - If a ligand or kinase is not in the MMCLKin database, explicitly say so.
 - The first version does not automatically download structures from RCSB PDB or AlphaFold DB.
 - The first version does not automatically run P2Rank.
