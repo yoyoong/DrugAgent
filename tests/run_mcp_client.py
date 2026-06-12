@@ -5,11 +5,20 @@ import os
 from pathlib import Path
 from typing import Any
 
+from dotenv import load_dotenv
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
+load_dotenv(PROJECT_ROOT / ".env")
+
+
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or not value.strip():
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value.strip()
 
 
 def print_result(title: str, result: Any) -> None:
@@ -32,7 +41,7 @@ async def main() -> None:
     parser.add_argument(
         "--skip-pubchem",
         action="store_true",
-        help="Skip search_molecule because it requires PubChem network access.",
+        help="Skip search_compound because it requires PubChem network access.",
     )
     args = parser.parse_args()
 
@@ -42,10 +51,12 @@ async def main() -> None:
         env={
             **os.environ,
             "PYTHONNOUSERSITE": "1",
-            "MODEL_API_BASE_URL": os.getenv(
-                "MODEL_API_BASE_URL",
-                "http://172.25.18.26:8000",
-            ),
+            "MODEL_API_HOST": required_env("MODEL_API_HOST"),
+            "MODEL_API_PORT": required_env("MODEL_API_PORT"),
+            "MCP_HOST": required_env("MCP_HOST"),
+            "MCP_PORT": required_env("MCP_PORT"),
+            "MCP_PATH": required_env("MCP_PATH"),
+            "MCP_TRANSPORT": "stdio",
         },
         cwd=str(PROJECT_ROOT),
     )
@@ -59,18 +70,18 @@ async def main() -> None:
             for tool in tools.tools:
                 print(f"- {tool.name}: {tool.description}")
 
-            # prediction = await session.call_tool(
-            #     "predict_molecule_property",
-            #     {"smiles": args.smiles},
-            # )
-            # print_result("predict_molecule_property", prediction)
+            prediction = await session.call_tool(
+                "predict_molecule_property",
+                {"smiles": args.smiles},
+            )
+            print_result("predict_molecule_property", prediction)
 
             if not args.skip_pubchem:
-                molecule = await session.call_tool(
-                    "search_molecule",
-                    {"smiles": args.smiles},
+                compound = await session.call_tool(
+                    "search_compound",
+                    {"query": args.smiles, "search_type": "smiles", "max_records": 1},
                 )
-                print_result("search_molecule", molecule)
+                print_result("search_compound", compound)
 
     print("\nMCP client check passed.")
 

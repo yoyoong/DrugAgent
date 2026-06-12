@@ -1,16 +1,32 @@
 import os
+from pathlib import Path
 from typing import Any
 
 import httpx
+from dotenv import load_dotenv
 from mcp.server.fastmcp import FastMCP
 
-from tools.search_molecule_tool import search_molecule_by_smiles
+from tools.search_compound_tool import search_compound as search_compound_from_pubchem
 
 
-MODEL_API_BASE_URL = os.getenv("MODEL_API_BASE_URL", "http://127.0.0.1:8000")
-MCP_HOST = os.getenv("MCP_HOST", "127.0.0.1")
-MCP_PORT = int(os.getenv("MCP_PORT", "8001"))
-MCP_PATH = os.getenv("MCP_PATH", "/mcp")
+PROJECT_ROOT = Path(__file__).resolve().parent
+load_dotenv(PROJECT_ROOT / ".env")
+
+
+def required_env(name: str) -> str:
+    value = os.getenv(name)
+    if value is None or not value.strip():
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value.strip()
+
+
+MCP_HOST = required_env("MCP_HOST")
+MCP_PORT = int(required_env("MCP_PORT"))
+MCP_PATH = required_env("MCP_PATH")
+MCP_TRANSPORT = required_env("MCP_TRANSPORT")
+
+MODEL_API_HOST = required_env("MODEL_API_HOST")
+MODEL_API_PORT_DCTBM = int(required_env("MODEL_API_PORT_DCTBM")) # DCTBM
 
 mcp = FastMCP(
     "DrugAgent",
@@ -21,18 +37,23 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-async def search_molecule(smiles: str) -> dict[str, Any]:
-    """Search PubChem by SMILES and return molecule metadata plus SDF."""
-    return await search_molecule_by_smiles(smiles)
+async def search_compound(
+    query: str,
+    search_type: str | None = None,
+    max_records: int = 10,
+) -> dict[str, Any]:
+    """Search PubChem compounds by name, CID, SMILES, InChI, or formula."""
+    return await search_compound_from_pubchem(query, search_type, max_records)
 
 
 @mcp.tool()
-async def predict_molecule_property(smiles: str) -> dict[str, Any]:
-    """Call the FastAPI-wrapped molecule property prediction model."""
+async def predict_retrosynthesis(smiles: str) -> dict[str, Any]:
+    """Call the FastAPI-wrapped DCTBM model."""
+
     if not smiles or not smiles.strip():
         raise ValueError("smiles is required")
 
-    url = f"{MODEL_API_BASE_URL}/models/molecule_property_prediction"
+    url = f"http://{MODEL_API_HOST}:{MODEL_API_PORT_DCTBM}/models/retrosynthesis_prediction"
     async with httpx.AsyncClient(timeout=20.0) as client:
         response = await client.post(url, json={"smiles": smiles.strip()})
         response.raise_for_status()
@@ -40,4 +61,4 @@ async def predict_molecule_property(smiles: str) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    mcp.run(transport="streamable-http")
+    mcp.run(transport=MCP_TRANSPORT)

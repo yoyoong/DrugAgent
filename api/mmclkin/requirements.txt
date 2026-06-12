@@ -1,0 +1,15 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.0.0
+torch
+torchvision
+torchaudio
+torch-geometric
+torch-scatter
+dgl
+rdkit
+biopython
+transformers
+scikit-learn
+numpy
+networkx==2.7.1
